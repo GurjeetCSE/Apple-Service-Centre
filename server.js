@@ -7,7 +7,9 @@ const path = require('path');
 
 const app = express();
 const PORT = 3000;
-const DB_PATH = path.join(__dirname, 'users.db');
+const DB_PATH = process.env.NODE_ENV === 'production' 
+    ? path.join('/tmp', 'users.db') 
+    : path.join(__dirname, 'users.db');
 
 let db; // SQLite database instance
 
@@ -15,11 +17,15 @@ let db; // SQLite database instance
 async function initDB() {
     const SQL = await initSqlJs();
 
-    // Load existing DB file or create new one
-    if (fs.existsSync(DB_PATH)) {
-        const fileBuffer = fs.readFileSync(DB_PATH);
-        db = new SQL.Database(fileBuffer);
-    } else {
+    try {
+        if (fs.existsSync(DB_PATH)) {
+            const fileBuffer = fs.readFileSync(DB_PATH);
+            db = new SQL.Database(fileBuffer);
+        } else {
+            db = new SQL.Database();
+        }
+    } catch (err) {
+        console.log('  ⚠️ Database load failed, starting fresh in memory');
         db = new SQL.Database();
     }
 
@@ -131,3 +137,5 @@ initDB().then(() => {
         console.log(`  ➜ Open: http://localhost:${PORT}\n`);
     });
 });
+
+module.exports = app;
