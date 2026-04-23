@@ -1,19 +1,9 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "server.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
+  "rewrites": [
+    { "source": "/api/signup", "destination": "/api/signup" },
+    { "source": "/api/login", "destination": "/api/login" },
+    { "source": "/api/user", "destination": "/api/user" },
+    { "source": "/api/logout", "destination": "/api/logout" }
   ]
 }
