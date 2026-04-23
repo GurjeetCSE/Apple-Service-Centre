@@ -12,9 +12,14 @@ const DB_PATH = process.env.NODE_ENV === 'production'
     : path.join(__dirname, 'users.db');
 
 let db; // SQLite database instance
+let isInitializing = false;
 
 // ============ INITIALIZE DATABASE ============
 async function initDB() {
+    if (db) return; // Already initialized
+    if (isInitializing) return; // Avoid parallel init
+    isInitializing = true;
+    
     const SQL = await initSqlJs();
 
     try {
@@ -41,6 +46,7 @@ async function initDB() {
     `);
     saveDB();
     console.log('  ✅ SQLite database ready');
+    isInitializing = false;
 }
 
 // Save database to file
