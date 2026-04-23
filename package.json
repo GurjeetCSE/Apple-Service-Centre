@@ -1,0 +1,16 @@
+{
+  "name": "apple-service-centre",
+  "version": "1.0.0",
+  "description": "Apple Service Centre Website with SQLite Authentication",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "sql.js": "^1.10.2",
+    "express-session": "^1.17.3",
+    "bcryptjs": "^2.4.3"
+  }
+}
