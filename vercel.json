@@ -1,9 +1,6 @@
 {
-  "version": 2,
-  "rewrites": [
-    { "source": "/api/signup", "destination": "/api/signup" },
-    { "source": "/api/login", "destination": "/api/login" },
-    { "source": "/api/user", "destination": "/api/user" },
-    { "source": "/api/logout", "destination": "/api/logout" }
-  ]
+  "framework": null,
+  "buildCommand": "",
+  "installCommand": "npm install",
+  "outputDirectory": "."
 }
