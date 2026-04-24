@@ -64,12 +64,44 @@
         </div>
     </div>
 
-    <!-- CTA -->
+    <!-- BOOKING SECTION -->
     <div style="text-align:center; margin-top: 50px;">
-        <div class="glass-card" style="max-width: 500px; margin: 0 auto;">
-            <h3 style="font-size: 1.3rem; margin-bottom: 12px;">Need a Repair?</h3>
-            <p style="color: #86868b; margin-bottom: 24px;">Get in touch with us to book your service appointment today.</p>
-            <a href="contact.html" class="btn-primary">Book Service</a>
+        <div class="glass-card" style="max-width: 600px; margin: 0 auto; text-align: left;">
+            <div class="logged-out-only">
+                <h3 style="font-size: 1.3rem; margin-bottom: 12px; text-align: center;">Need a Repair?</h3>
+                <p style="color: #86868b; margin-bottom: 24px; text-align: center;">Please login to book a service appointment online.</p>
+                <div style="text-align: center;">
+                    <a href="login.html" class="btn-primary">Login to Book</a>
+                </div>
+            </div>
+
+            <div class="logged-in-only" style="display: none;">
+                <h3 style="font-size: 1.4rem; margin-bottom: 8px;">Book a Repair</h3>
+                <p style="color: #86868b; font-size: 0.9rem; margin-bottom: 24px;">Fill in the details below and we'll get back to you.</p>
+                
+                <form onsubmit="handleBooking(event)" id="booking-form">
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-size: 0.85rem; margin-bottom: 5px; color: #86868b;">Device Type</label>
+                        <select id="device-type" required style="width: 100%; padding: 12px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                            <option value="iPhone">iPhone</option>
+                            <option value="MacBook">MacBook</option>
+                            <option value="iPad">iPad</option>
+                            <option value="Watch">Apple Watch</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-size: 0.85rem; margin-bottom: 5px; color: #86868b;">Model Name</label>
+                        <input type="text" id="device-model" placeholder="e.g. iPhone 15 Pro" required style="width: 100%; padding: 12px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 0.85rem; margin-bottom: 5px; color: #86868b;">Issue Details</label>
+                        <textarea id="issue-details" placeholder="Describe the problem..." rows="3" required style="width: 100%; padding: 12px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary" style="width: 100%;">Confirm Booking</button>
+                    <p id="booking-status" style="margin-top: 15px; font-size: 0.85rem; text-align: center;"></p>
+                </form>
+            </div>
         </div>
     </div>
 </section>
@@ -98,5 +130,39 @@
 </footer>
 
 <script src="auth.js"></script>
+<script>
+async function handleBooking(e) {
+    e.preventDefault();
+    const status = document.getElementById('booking-status');
+    const deviceType = document.getElementById('device-type').value;
+    const model = document.getElementById('device-model').value;
+    const issue = document.getElementById('issue-details').value;
+
+    status.textContent = '⌛ Processing booking...';
+    status.style.color = '#60a5fa';
+
+    try {
+        const res = await fetch('/api/book-repair', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ deviceType, model, issue })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            status.textContent = '✅ ' + data.message;
+            status.style.color = '#10b981';
+            e.target.reset();
+            setTimeout(() => { window.location.href = 'profile.html'; }, 2000);
+        } else {
+            status.textContent = '❌ ' + data.message;
+            status.style.color = '#f87171';
+        }
+    } catch (err) {
+        status.textContent = '❌ Connection error. Please try again.';
+        status.style.color = '#f87171';
+    }
+}
+</script>
 </body>
 </html>

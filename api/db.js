@@ -24,13 +24,22 @@ async function getDB() {
             db = new SQL.Database(fileBuffer);
         } else {
             db = new SQL.Database();
-            db.run(`CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                email TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )`);
+                db.run(`CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    email TEXT UNIQUE NOT NULL,
+                    password TEXT NOT NULL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )`);
+                db.run(`CREATE TABLE IF NOT EXISTS repairs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_email TEXT NOT NULL,
+                    device_type TEXT NOT NULL,
+                    model TEXT NOT NULL,
+                    issue TEXT NOT NULL,
+                    status TEXT DEFAULT 'Pending',
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )`);
         }
         return db;
     } catch (e) {
@@ -41,6 +50,7 @@ async function getDB() {
         });
         db = new SQL.Database();
         db.run(`CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, email TEXT UNIQUE NOT NULL, password TEXT NOT NULL)`);
+        db.run(`CREATE TABLE IF NOT EXISTS repairs (id INTEGER PRIMARY KEY AUTOINCREMENT, user_email TEXT NOT NULL, device_type TEXT NOT NULL, model TEXT NOT NULL, issue TEXT NOT NULL, status TEXT DEFAULT 'Pending')`);
         return db;
     }
 }

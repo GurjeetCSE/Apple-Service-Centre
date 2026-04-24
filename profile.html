@@ -37,14 +37,10 @@
             <h2 id="profile-name" style="font-size: 2rem; margin-bottom: 5px;">Loading...</h2>
             <p id="profile-email" style="color: #86868b; margin-bottom: 30px;">loading@example.com</p>
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: left; margin-top: 40px;">
-                <div class="glass-card" style="padding: 20px; background: rgba(255,255,255,0.03);">
-                    <h4 style="margin-bottom: 10px; color: #60a5fa;"><i class="fas fa-calendar-alt"></i> Member Since</h4>
-                    <p style="font-size: 0.9rem;">April 2026</p>
-                </div>
-                <div class="glass-card" style="padding: 20px; background: rgba(255,255,255,0.03);">
-                    <h4 style="margin-bottom: 10px; color: #60a5fa;"><i class="fas fa-tools"></i> Active Repairs</h4>
-                    <p style="font-size: 0.9rem;">No active repairs found</p>
+            <div style="margin-top: 40px; text-align: left;">
+                <h3 style="margin-bottom: 20px; font-size: 1.4rem;"><i class="fas fa-history" style="color: #60a5fa; margin-right: 10px;"></i> Your Service History</h3>
+                <div id="repairs-list">
+                    <p style="color: #86868b; font-style: italic;">Fetching your repair history...</p>
                 </div>
             </div>
 
@@ -78,10 +74,50 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         document.getElementById('profile-name').textContent = data.user.name;
         document.getElementById('profile-email').textContent = data.user.email;
+
+        fetchRepairs();
     } catch (e) {
         console.error('Error fetching profile:', e);
     }
 });
+
+async function fetchRepairs() {
+    const list = document.getElementById('repairs-list');
+    try {
+        const res = await fetch('/api/my-repairs');
+        const data = await res.json();
+        
+        if (data.success && data.repairs.length > 0) {
+            list.innerHTML = data.repairs.map(repair => `
+                <div class="glass-card" style="padding: 15px 20px; margin-bottom: 15px; background: rgba(255,255,255,0.02); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h4 style="margin-bottom: 4px;">${repair.device_type} - ${repair.model}</h4>
+                        <p style="font-size: 0.85rem; color: #86868b;">${repair.issue}</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: ${getStatusColor(repair.status)}; color: white;">
+                            ${repair.status}
+                        </span>
+                        <p style="font-size: 0.75rem; color: #424245; margin-top: 4px;">${new Date(repair.created_at).toLocaleDateString()}</p>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            list.innerHTML = '<div style="padding: 30px; text-align: center; background: rgba(255,255,255,0.01); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1);"><p style="color: #86868b;">No repair bookings found yet.</p></div>';
+        }
+    } catch (e) {
+        list.innerHTML = '<p style="color: #f87171;">Failed to load repairs.</p>';
+    }
+}
+
+function getStatusColor(status) {
+    switch(status.toLowerCase()) {
+        case 'pending': return '#f59e0b';
+        case 'in progress': return '#3b82f6';
+        case 'completed': return '#10b981';
+        default: return '#6b7280';
+    }
+}
 
 async function handleLogout() {
     await fetch('/api/logout');
