@@ -30,7 +30,12 @@
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-bottom: 40px;">
+    <div style="display: flex; gap: 15px; margin-bottom: 25px;">
+        <button id="tab-repairs" onclick="switchTab('repairs')" class="btn-primary" style="padding: 10px 25px;">Repair Requests</button>
+        <button id="tab-messages" onclick="switchTab('messages')" class="btn-secondary" style="padding: 10px 25px;">Customer Messages</button>
+    </div>
+
+    <div id="repairs-section" style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-bottom: 40px;">
         <div class="glass-card" style="padding: 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
             <table style="width: 100%; border-collapse: collapse; text-align: left;">
                 <thead>
@@ -54,6 +59,26 @@
             <canvas id="repairChart" width="300" height="300"></canvas>
         </div>
     </div>
+
+    <div id="messages-section" style="display: none; margin-bottom: 40px;">
+        <div class="glass-card" style="padding: 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="background: rgba(255,255,255,0.05); color: #86868b; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
+                        <th style="padding: 20px;">Name</th>
+                        <th style="padding: 20px;">Subject</th>
+                        <th style="padding: 20px;">Message</th>
+                        <th style="padding: 20px;">Date</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-messages-list">
+                    <tr>
+                        <td colspan="4" style="padding: 40px; text-align: center; color: #86868b;">Loading messages...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </section>
 
 <script>
@@ -61,6 +86,7 @@ let repairChart = null;
 document.addEventListener('DOMContentLoaded', fetchAllRepairs);
 
 async function fetchAllRepairs() {
+    if (document.getElementById('repairs-section').style.display === 'none') return;
     const list = document.getElementById('admin-repairs-list');
     try {
         const res = await fetch('/api/admin-repairs');
@@ -93,6 +119,53 @@ async function fetchAllRepairs() {
         }
     } catch (e) {
         list.innerHTML = '<tr><td colspan="4" style="padding: 60px; text-align: center; color: #f87171;">Failed to load data.</td></tr>';
+    }
+}
+
+async function fetchAllMessages() {
+    const list = document.getElementById('admin-messages-list');
+    try {
+        const res = await fetch('/api/admin-contacts');
+        const data = await res.json();
+        
+        if (data.success && data.contacts.length > 0) {
+            list.innerHTML = data.contacts.map(msg => `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 20px;">
+                        <div style="font-weight: 600; font-size: 0.85rem;">${msg.name}</div>
+                        <div style="font-size: 0.75rem; color: #86868b;">${msg.email}</div>
+                    </td>
+                    <td style="padding: 20px; font-size: 0.85rem; color: #60a5fa;">${msg.subject}</td>
+                    <td style="padding: 20px; font-size: 0.85rem; color: #d2d2d7; max-width: 400px;">${msg.message}</td>
+                    <td style="padding: 20px; font-size: 0.8rem; color: #86868b;">${new Date(msg.created_at).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        } else {
+            list.innerHTML = '<tr><td colspan="4" style="padding: 60px; text-align: center; color: #86868b;">No messages yet.</td></tr>';
+        }
+    } catch (e) {
+        list.innerHTML = '<tr><td colspan="4" style="padding: 60px; text-align: center; color: #f87171;">Failed to load messages.</td></tr>';
+    }
+}
+
+function switchTab(tab) {
+    const repairSec = document.getElementById('repairs-section');
+    const msgSec = document.getElementById('messages-section');
+    const repairBtn = document.getElementById('tab-repairs');
+    const msgBtn = document.getElementById('tab-messages');
+    
+    if (tab === 'repairs') {
+        repairSec.style.display = 'grid';
+        msgSec.style.display = 'none';
+        repairBtn.className = 'btn-primary';
+        msgBtn.className = 'btn-secondary';
+        fetchAllRepairs();
+    } else {
+        repairSec.style.display = 'none';
+        msgSec.style.display = 'block';
+        repairBtn.className = 'btn-secondary';
+        msgBtn.className = 'btn-primary';
+        fetchAllMessages();
     }
 }
 
