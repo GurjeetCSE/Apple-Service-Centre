@@ -122,22 +122,27 @@ async function fetchRepairs() {
         
         if (data.success && data.repairs.length > 0) {
             list.innerHTML = data.repairs.map(repair => `
-                <div class="glass-card" style="padding: 15px 20px; margin-bottom: 15px; background: rgba(255,255,255,0.02); display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <h4 style="margin-bottom: 4px;">${repair.device_type} - ${repair.model}</h4>
-                        <p style="font-size: 0.85rem; color: #86868b;">${repair.issue}</p>
-                    </div>
-                    <div style="text-align: right;">
-                        <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: ${getStatusColor(repair.status)}; color: white;">
-                            ${repair.status}
-                        </span>
-                        ${repair.status === 'Completed' ? `
-                            <button onclick="showReviewForm('${repair.id}')" style="display: block; margin-top: 8px; font-size: 0.7rem; color: #60a5fa; background: none; border: 1px solid #60a5fa; padding: 2px 8px; border-radius: 4px; cursor: pointer;">Leave Review</button>
-                        ` : ''}
-                        <p style="font-size: 0.75rem; color: #424245; margin-top: 4px;">${new Date(repair.created_at).toLocaleDateString()}</p>
+                <div class="glass-card page-transition" style="padding: 20px; margin-bottom: 15px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;">
+                        <div>
+                            <h4 style="margin-bottom: 4px; font-size: 1.1rem;">${repair.device_type} - ${repair.model}</h4>
+                            <p style="font-size: 0.85rem; color: #86868b; margin-bottom: 8px;">${repair.issue}</p>
+                            <span style="font-size: 0.7rem; color: #424245;">Order Date: ${new Date(repair.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                            <span style="padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; background: ${getStatusColor(repair.status)}; color: white; text-transform: uppercase;">
+                                ${repair.status}
+                            </span>
+                            ${repair.status === 'Completed' ? `
+                                <div style="display: flex; gap: 8px;">
+                                    <button onclick='generateReceipt(${JSON.stringify(repair)})' style="font-size: 0.7rem; color: #10b981; background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; padding: 4px 10px; border-radius: 6px; cursor: pointer;"><i class="fas fa-file-invoice"></i> Receipt</button>
+                                    <button onclick="showReviewForm('${repair.id}')" style="font-size: 0.7rem; color: #60a5fa; background: rgba(96, 165, 250, 0.1); border: 1px solid #60a5fa; padding: 4px 10px; border-radius: 6px; cursor: pointer;">Review</button>
+                                </div>
+                            ` : ''}
+                        </div>
                     </div>
                 </div>
-                <div id="review-form-${repair.id}" style="display: none; margin-bottom: 20px; padding: 20px; background: rgba(37, 99, 235, 0.1); border-radius: 12px;">
+                <div id="review-form-${repair.id}" style="display: none; margin-bottom: 20px; padding: 20px; background: rgba(37, 99, 235, 0.1); border-radius: 12px; border: 1px solid rgba(37, 99, 235, 0.2);">
                     <h5 style="margin-bottom: 10px;">Share your experience</h5>
                     <select id="rating-${repair.id}" style="width: 100%; margin-bottom: 10px; padding: 8px; background: #000; color: #fff; border: 1px solid #333;">
                         <option value="5">⭐⭐⭐⭐⭐ (Excellent)</option>
@@ -156,6 +161,79 @@ async function fetchRepairs() {
     } catch (e) {
         list.innerHTML = '<p style="color: #f87171;">Failed to load repairs.</p>';
     }
+}
+
+function generateReceipt(repair) {
+    const receiptWindow = window.open('', '_blank');
+    const date = new Date(repair.created_at).toLocaleDateString();
+    const orderId = 'AS-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+    
+    receiptWindow.document.write(`
+        <html>
+        <head>
+            <title>Receipt - ${orderId}</title>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+            <style>
+                body { font-family: 'Inter', sans-serif; padding: 40px; color: #1d1d1f; line-height: 1.5; }
+                .receipt-container { max-width: 600px; margin: 0 auto; border: 1px solid #e5e5e5; padding: 40px; border-radius: 20px; }
+                .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f5f5f7; padding-bottom: 20px; margin-bottom: 30px; }
+                .logo { font-size: 1.5rem; font-weight: 700; color: #000; }
+                .order-info { margin-bottom: 30px; }
+                .row { display: flex; justify-content: space-between; margin-bottom: 15px; }
+                .label { color: #86868b; font-size: 0.9rem; }
+                .value { font-weight: 600; }
+                .total-section { border-top: 2px solid #f5f5f7; padding-top: 20px; margin-top: 30px; text-align: right; }
+                .total-label { font-size: 1.1rem; color: #86868b; }
+                .total-value { font-size: 1.8rem; font-weight: 700; color: #000; margin-left: 10px; }
+                .footer { margin-top: 50px; text-align: center; color: #86868b; font-size: 0.8rem; }
+                @media print { .no-print { display: none; } }
+            </style>
+        </head>
+        <body>
+            <div class="receipt-container">
+                <div class="header">
+                    <div class="logo">🍎 Apple Service Centre</div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: 700; color: #10b981;">PAID</div>
+                        <div style="font-size: 0.8rem; color: #86868b;">${date}</div>
+                    </div>
+                </div>
+                
+                <div class="order-info">
+                    <div class="row">
+                        <span class="label">Order ID</span>
+                        <span class="value">${orderId}</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">Customer</span>
+                        <span class="value">${document.getElementById('profile-email').textContent}</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">Device</span>
+                        <span class="value">${repair.device_type} - ${repair.model}</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">Service</span>
+                        <span class="value">${repair.issue}</span>
+                    </div>
+                </div>
+
+                <div class="total-section">
+                    <span class="total-label">Service Fee:</span>
+                    <span class="total-value">₹0.00</span>
+                    <div style="font-size: 0.7rem; color: #86868b; margin-top: 5px;">(Warranty Covered / Paid at Centre)</div>
+                </div>
+
+                <div class="footer">
+                    <p>Thank you for choosing Apple Service Centre.</p>
+                    <p>This is a computer-generated receipt. No signature required.</p>
+                    <button onclick="window.print()" class="no-print" style="margin-top: 20px; padding: 10px 20px; background: #000; color: #fff; border: none; border-radius: 8px; cursor: pointer;">Print Receipt</button>
+                </div>
+            </div>
+        </body>
+        </html>
+    `);
+    receiptWindow.document.close();
 }
 
 function showReviewForm(id) {
