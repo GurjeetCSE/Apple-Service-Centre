@@ -613,6 +613,12 @@ footer {
 }
 
 /* ============ RESPONSIVE ============ */
+@media (max-width: 1024px) {
+    #repairs-section {
+        grid-template-columns: 1fr !important;
+    }
+}
+
 @media (max-width: 768px) {
     header {
         padding: 14px 20px;
@@ -668,6 +674,21 @@ footer {
 
     .stats-grid {
         grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .btn-primary, .btn-secondary {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .glass-card {
+        overflow-x: auto;
+    }
+    
+    table {
+        min-width: 600px;
     }
 }
 
