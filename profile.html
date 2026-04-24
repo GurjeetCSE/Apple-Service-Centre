@@ -31,12 +31,10 @@
 
     <div style="max-width: 800px; margin: 0 auto;">
         <div class="glass-card" style="padding: 40px; text-align: center;">
-            <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #2563eb, #3b82f6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: white; margin: 0 auto 20px;">
-                <i class="fas fa-user"></i>
-            </div>
+            <div id="profile-avatar" class="skeleton skeleton-circle"></div>
             <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px;">
-                <h2 id="profile-name" style="font-size: 2rem;">Loading...</h2>
-                <button onclick="toggleEditMode()" style="background: none; border: none; color: #60a5fa; cursor: pointer; font-size: 1.2rem;"><i class="fas fa-edit"></i></button>
+                <h2 id="profile-name" style="font-size: 2rem;"><span class="skeleton" style="width: 200px; height: 35px;"></span></h2>
+                <button id="edit-btn" onclick="toggleEditMode()" style="display:none; background: none; border: none; color: #60a5fa; cursor: pointer; font-size: 1.2rem;"><i class="fas fa-edit"></i></button>
             </div>
             
             <div id="edit-form" style="display: none; margin: 20px 0;">
@@ -44,12 +42,13 @@
                 <button onclick="saveProfile()" class="btn-primary" style="padding: 8px 20px; font-size: 0.85rem; margin-left: 10px;">Save</button>
             </div>
 
-            <p id="profile-email" style="color: #86868b; margin-bottom: 30px;">loading@example.com</p>
+            <p id="profile-email" style="color: #86868b; margin-bottom: 30px;"><span class="skeleton" style="width: 150px; height: 20px;"></span></p>
             
             <div style="margin-top: 40px; text-align: left;">
                 <h3 style="margin-bottom: 20px; font-size: 1.4rem;"><i class="fas fa-history" style="color: #60a5fa; margin-right: 10px;"></i> Your Service History</h3>
                 <div id="repairs-list">
-                    <p style="color: #86868b; font-style: italic;">Fetching your repair history...</p>
+                    <div class="skeleton-card skeleton"></div>
+                    <div class="skeleton-card skeleton"></div>
                 </div>
             </div>
 
@@ -99,8 +98,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        // Remove skeletons and show content
+        const avatar = document.getElementById('profile-avatar');
+        avatar.classList.remove('skeleton', 'skeleton-circle');
+        avatar.style.cssText = 'width: 100px; height: 100px; background: linear-gradient(135deg, #2563eb, #3b82f6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: white; margin: 0 auto 20px;';
+        avatar.innerHTML = '<i class="fas fa-user"></i>';
+
         document.getElementById('profile-name').textContent = data.user.name;
         document.getElementById('profile-email').textContent = data.user.email;
+        document.getElementById('edit-btn').style.display = 'block';
 
         fetchRepairs();
     } catch (e) {
