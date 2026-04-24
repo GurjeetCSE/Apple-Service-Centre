@@ -20,9 +20,11 @@ async function initDB() {
     if (isInitializing) return; // Avoid parallel init
     isInitializing = true;
     
-    const SQL = await initSqlJs();
-
     try {
+        const SQL = await initSqlJs({
+            locateFile: file => path.join(__dirname, 'node_modules', 'sql.js', 'dist', file)
+        });
+
         if (fs.existsSync(DB_PATH)) {
             const fileBuffer = fs.readFileSync(DB_PATH);
             db = new SQL.Database(fileBuffer);
@@ -31,6 +33,9 @@ async function initDB() {
         }
     } catch (err) {
         console.log('  ⚠️ Database load failed, starting fresh in memory');
+        const SQL = await initSqlJs({
+            locateFile: file => path.join(__dirname, 'node_modules', 'sql.js', 'dist', file)
+        });
         db = new SQL.Database();
     }
 
@@ -82,14 +87,18 @@ app.post('/api/signup', (req, res) => {
     }
 
     // Check if email exists
-    const existing = db.exec("SELECT id FROM users WHERE email = ?", [email]);
-    if (existing.length > 0 && existing[0].values.length > 0) {
+    const stmt = db.prepare("SELECT id FROM users WHERE email = ?");
+    stmt.bind([email]);
+    const exists = stmt.step();
+    stmt.free();
+
+    if (exists) {
         return res.json({ success: false, message: 'An account with this email already exists.' });
     }
 
     // Hash password & insert
-    const hashedPassword = bcrypt.hashSync(password, 10);
-    db.run("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", [name, email, hashedPassword]);
+    const hashed = bcrypt.hashSync(password, 10);
+    db.run("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", [name, email, hashed]);
     saveDB();
 
     res.json({ success: true, message: 'Account created successfully!' });
@@ -103,15 +112,16 @@ app.post('/api/login', (req, res) => {
         return res.json({ success: false, message: 'Please enter both email and password.' });
     }
 
-    const result = db.exec("SELECT * FROM users WHERE email = ?", [email]);
-    if (result.length === 0 || result[0].values.length === 0) {
+    const stmt = db.prepare("SELECT * FROM users WHERE email = ?");
+    stmt.bind([email]);
+    
+    if (!stmt.step()) {
+        stmt.free();
         return res.json({ success: false, message: 'Invalid email or password.' });
     }
 
-    const row = result[0].values[0];
-    const cols = result[0].columns;
-    const user = {};
-    cols.forEach((col, i) => { user[col] = row[i]; });
+    const user = stmt.getAsObject();
+    stmt.free();
 
     if (!bcrypt.compareSync(password, user.password)) {
         return res.json({ success: false, message: 'Invalid email or password.' });
@@ -137,11 +147,16 @@ app.get('/api/logout', (req, res) => {
 });
 
 // ============ START ============
-initDB().then(() => {
-    app.listen(PORT, () => {
-        console.log(`\n  🍎 Apple Service Centre is running!`);
-        console.log(`  ➜ Open: http://localhost:${PORT}\n`);
+if (!process.env.VERCEL) {
+    initDB().then(() => {
+        app.listen(PORT, () => {
+            console.log(`\n  🍎 Apple Service Centre is running!`);
+            console.log(`  ➜ Open: http://localhost:${PORT}\n`);
+        });
     });
-});
+} else {
+    // On Vercel, just init DB (it's async but Vercel will wait for the first request)
+    initDB();
+}
 
 module.exports = app;

@@ -80,11 +80,18 @@ async function handleLogin(e) {
     btn.textContent = 'Signing in...'; btn.disabled = true; err.textContent = '';
     try {
         const res = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ email:document.getElementById('email').value, password:document.getElementById('password').value }) });
+        
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`Server error: ${res.status}`);
+        }
+        
         const data = await res.json();
-        if (data.success) { err.textContent='✅ '+data.message; err.className='error-msg success-msg'; setTimeout(()=>{ window.location.href='/index.html'; },800); }
+        if (data.success) { err.textContent='✅ '+data.message; err.className='error-msg success-msg'; setTimeout(()=>{ window.location.href='index.html'; },800); }
         else { err.textContent=data.message; btn.textContent='Sign In'; btn.disabled=false; }
-    } catch(e) { err.textContent='Server not reachable. Run: npm start'; btn.textContent='Sign In'; btn.disabled=false; }
+    } catch(e) { err.textContent='Error: ' + e.message; btn.textContent='Sign In'; btn.disabled=false; }
 }
 </script>
+<script src="auth.js"></script>
 </body>
 </html>

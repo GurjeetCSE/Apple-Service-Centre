@@ -29,19 +29,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             logoutLink.onclick = async (e) => {
                 e.preventDefault();
                 await fetch('/api/logout');
-                window.location.href = '/index.html';
+                window.location.href = 'index.html';
             };
             nav.appendChild(logoutLink);
         } else {
             // Show login + signup
             const loginLink = document.createElement('a');
-            loginLink.href = '/login.html';
+            loginLink.href = 'login.html';
             loginLink.className = 'auth-link';
             loginLink.textContent = 'Login';
             nav.appendChild(loginLink);
 
             const signupLink = document.createElement('a');
-            signupLink.href = '/signup.html';
+            signupLink.href = 'signup.html';
             signupLink.className = 'auth-link';
             signupLink.style.cssText = 'background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; border-radius: 8px; padding: 8px 18px !important;';
             signupLink.textContent = 'Sign Up';

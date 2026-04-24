@@ -113,11 +113,38 @@
 
 <script src="auth.js"></script>
 <script>
-function handleSubmit(e) {
+async function handleSubmit(e) {
     e.preventDefault();
     const status = document.getElementById('form-status');
-    status.textContent = '✅ Thank you! Your message has been sent successfully.';
-    e.target.reset();
+    const name = document.getElementById('contact-name').value;
+    const email = document.getElementById('contact-email').value;
+    const subject = document.getElementById('contact-subject').value;
+    const message = document.getElementById('contact-message').value;
+
+    status.textContent = '⌛ Sending...';
+    status.style.color = '#60a5fa';
+
+    try {
+        const res = await fetch('/api/contact', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, subject, message })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            status.textContent = '✅ ' + data.message;
+            status.style.color = '#34d399';
+            e.target.reset();
+        } else {
+            status.textContent = '❌ ' + data.message;
+            status.style.color = '#f87171';
+        }
+    } catch (err) {
+        status.textContent = '❌ Failed to send message. Please try again.';
+        status.style.color = '#f87171';
+    }
+    
     setTimeout(() => { status.textContent = ''; }, 5000);
 }
 </script>

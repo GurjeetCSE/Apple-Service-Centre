@@ -93,11 +93,17 @@ async function handleSignup(e) {
     btn.textContent = 'Creating account...'; btn.disabled = true; err.textContent = '';
     try {
         const res = await fetch('/api/signup', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ name:document.getElementById('name').value, email:document.getElementById('email').value, password }) });
+        
+        if (!res.ok) {
+            throw new Error(`Server error: ${res.status}`);
+        }
+
         const data = await res.json();
-        if (data.success) { err.textContent='✅ '+data.message+' Redirecting...'; err.className='error-msg success-msg'; setTimeout(()=>{ window.location.href='/login.html'; },1000); }
+        if (data.success) { err.textContent='✅ '+data.message+' Redirecting...'; err.className='error-msg success-msg'; setTimeout(()=>{ window.location.href='login.html'; },1000); }
         else { err.textContent=data.message; btn.textContent='Create Account'; btn.disabled=false; }
-    } catch(e) { err.textContent='Server not reachable. Run: npm start'; btn.textContent='Create Account'; btn.disabled=false; }
+    } catch(e) { err.textContent='Error: ' + e.message; btn.textContent='Create Account'; btn.disabled=false; }
 }
 </script>
+<script src="auth.js"></script>
 </body>
 </html>
