@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Apple Service Centre</title>
+    <meta name="description" content="Get in touch with Apple Service Centre. Visit us in Ludhiana or call us for Apple device repairs.">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+    <div class="logo">🍎 Apple Service Centre</div>
+    <button class="menu-toggle" onclick="document.querySelector('nav').classList.toggle('open')" aria-label="Menu">☰</button>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="services.html">Services</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="about.html">About</a>
+        <a href="contact.html" class="active">Contact</a>
+    </nav>
+</header>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+    <h1>Contact Us</h1>
+    <p>We're here to help with all your Apple device needs</p>
+</div>
+
+<!-- CONTACT -->
+<section class="section">
+    <div class="contact-grid">
+        <!-- LEFT: Info -->
+        <div>
+            <div class="contact-info-item">
+                <span class="icon">📞</span>
+                <div>
+                    <h4>Phone</h4>
+                    <p>0161-2430400</p>
+                </div>
+            </div>
+            <div class="contact-info-item">
+                <span class="icon">📧</span>
+                <div>
+                    <h4>Email</h4>
+                    <p>support@appleservice.com</p>
+                </div>
+            </div>
+            <div class="contact-info-item">
+                <span class="icon">📍</span>
+                <div>
+                    <h4>Address</h4>
+                    <p>B-18, M.C No. R 432 First Floor, Survi Plaza, opposite Bikaner Sweets, near Lyallpur Sweets, Pritm Nagar, Model Town, Ludhiana, Punjab 141002</p>
+                </div>
+            </div>
+            <div class="contact-info-item">
+                <span class="icon">🕐</span>
+                <div>
+                    <h4>Working Hours</h4>
+                    <p>Mon - Sat: 10:00 AM - 7:00 PM<br>Sunday: Closed</p>
+                </div>
+            </div>
+
+            <!-- MAP -->
+            <div class="map-container">
+                <iframe 
+                    src="https://maps.google.com/maps?q=Apple+Authorised+Service+Provider+Ludhiana&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                    allowfullscreen loading="lazy">
+                </iframe>
+            </div>
+        </div>
+
+        <!-- RIGHT: Form -->
+        <div class="glass-card">
+            <h3 style="font-size: 1.3rem; margin-bottom: 8px;">Send a Message</h3>
+            <p style="color: #86868b; font-size: 0.9rem; margin-bottom: 24px;">Fill out the form and we'll get back to you soon.</p>
+            <form class="contact-form" onsubmit="handleSubmit(event)">
+                <input type="text" id="contact-name" placeholder="Your Name" required>
+                <input type="email" id="contact-email" placeholder="Your Email" required>
+                <input type="text" id="contact-subject" placeholder="Subject">
+                <textarea id="contact-message" placeholder="Your Message" rows="5" required></textarea>
+                <button type="submit" class="btn-primary" style="width: 100%; text-align: center;">Send Message</button>
+            </form>
+            <p id="form-status" style="margin-top: 14px; font-size: 0.85rem; color: #34d399; min-height: 20px;"></p>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+    <div class="footer-content">
+        <div class="footer-logo">🍎 Apple Service Centre</div>
+        <div class="footer-links">
+            <a href="index.html">Home</a>
+            <a href="services.html">Services</a>
+            <a href="gallery.html">Gallery</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+        </div>
+        <div class="social-icons">
+            <a href="https://www.instagram.com/apple/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="https://www.facebook.com/apple/" target="_blank" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+            <a href="https://twitter.com/Apple" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="https://www.youtube.com/@Apple" target="_blank" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>© 2026 Apple Service Centre. All rights reserved.</p>
+    </div>
+</footer>
+
+<script src="auth.js"></script>
+<script>
+async function handleSubmit(e) {
+    e.preventDefault();
+    const status = document.getElementById('form-status');
+    const name = document.getElementById('contact-name').value;
+    const email = document.getElementById('contact-email').value;
+    const subject = document.getElementById('contact-subject').value;
+    const message = document.getElementById('contact-message').value;
+
+    status.textContent = '⌛ Sending...';
+    status.style.color = '#60a5fa';
+
+    try {
+        const res = await fetch('/api/contact', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, subject, message })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            status.textContent = '✅ ' + data.message;
+            status.style.color = '#34d399';
+            e.target.reset();
+        } else {
+            status.textContent = '❌ ' + data.message;
+            status.style.color = '#f87171';
+        }
+    } catch (err) {
+        status.textContent = '❌ Failed to send message. Please try again.';
+        status.style.color = '#f87171';
+    }
+    
+    setTimeout(() => { status.textContent = ''; }, 5000);
+}
+</script>
+
+</body>
+</html>
