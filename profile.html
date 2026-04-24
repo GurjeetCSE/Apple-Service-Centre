@@ -98,8 +98,23 @@ async function fetchRepairs() {
                         <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: ${getStatusColor(repair.status)}; color: white;">
                             ${repair.status}
                         </span>
+                        ${repair.status === 'Completed' ? `
+                            <button onclick="showReviewForm('${repair.id}')" style="display: block; margin-top: 8px; font-size: 0.7rem; color: #60a5fa; background: none; border: 1px solid #60a5fa; padding: 2px 8px; border-radius: 4px; cursor: pointer;">Leave Review</button>
+                        ` : ''}
                         <p style="font-size: 0.75rem; color: #424245; margin-top: 4px;">${new Date(repair.created_at).toLocaleDateString()}</p>
                     </div>
+                </div>
+                <div id="review-form-${repair.id}" style="display: none; margin-bottom: 20px; padding: 20px; background: rgba(37, 99, 235, 0.1); border-radius: 12px;">
+                    <h5 style="margin-bottom: 10px;">Share your experience</h5>
+                    <select id="rating-${repair.id}" style="width: 100%; margin-bottom: 10px; padding: 8px; background: #000; color: #fff; border: 1px solid #333;">
+                        <option value="5">⭐⭐⭐⭐⭐ (Excellent)</option>
+                        <option value="4">⭐⭐⭐⭐ (Great)</option>
+                        <option value="3">⭐⭐⭐ (Good)</option>
+                        <option value="2">⭐⭐ (Fair)</option>
+                        <option value="1">⭐ (Poor)</option>
+                    </select>
+                    <textarea id="comment-${repair.id}" placeholder="Your feedback..." rows="2" style="width: 100%; margin-bottom: 10px; padding: 8px; background: #000; color: #fff; border: 1px solid #333;"></textarea>
+                    <button onclick="submitReview('${repair.id}')" class="btn-primary" style="padding: 6px 15px; font-size: 0.8rem;">Submit Review</button>
                 </div>
             `).join('');
         } else {
@@ -107,6 +122,30 @@ async function fetchRepairs() {
         }
     } catch (e) {
         list.innerHTML = '<p style="color: #f87171;">Failed to load repairs.</p>';
+    }
+}
+
+function showReviewForm(id) {
+    document.getElementById(`review-form-${id}`).style.display = 'block';
+}
+
+async function submitReview(id) {
+    const rating = document.getElementById(`rating-${id}`).value;
+    const comment = document.getElementById(`comment-${id}`).value;
+    
+    try {
+        const res = await fetch('/api/add-review', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rating, comment })
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert(data.message);
+            document.getElementById(`review-form-${id}`).style.display = 'none';
+        }
+    } catch (e) {
+        alert('Error submitting review');
     }
 }
 
