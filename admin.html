@@ -296,16 +296,35 @@ async function updateStatus(repairId, newStatus) {
 function updateStats(repairs) {
     const total = repairs.length;
     const pending = repairs.filter(r => r.status.toLowerCase() === 'pending').length;
+    
+    const categories = {
+        'iPhone': { count: 0, icon: 'fa-mobile-screen-button', color: '#3b82f6' },
+        'MacBook': { count: 0, icon: 'fa-laptop', color: '#60a5fa' },
+        'iPad': { count: 0, icon: 'fa-tablet-screen-button', color: '#93c5fd' },
+        'Watch': { count: 0, icon: 'fa-clock', color: '#bfdbfe' }
+    };
+
+    repairs.forEach(r => {
+        if (categories[r.device_type]) categories[r.device_type].count++;
+    });
+
     const stats = document.getElementById('stats-summary');
     stats.innerHTML = `
-        <div class="glass-card" style="padding: 10px 20px; min-width: 120px;">
-            <div style="font-size: 0.75rem; color: #86868b;">Total Requests</div>
-            <div style="font-size: 1.5rem; font-weight: bold;">${total}</div>
+        <div class="glass-card" style="padding: 15px 25px; min-width: 150px; text-align: center;">
+            <div style="font-size: 0.75rem; color: #86868b; text-transform: uppercase; letter-spacing: 1px;">Total</div>
+            <div style="font-size: 1.8rem; font-weight: bold;">${total}</div>
         </div>
-        <div class="glass-card" style="padding: 10px 20px; min-width: 120px; border-left: 3px solid #f59e0b;">
-            <div style="font-size: 0.75rem; color: #86868b;">Pending</div>
-            <div style="font-size: 1.5rem; font-weight: bold; color: #f59e0b;">${pending}</div>
+        <div class="glass-card" style="padding: 15px 25px; min-width: 150px; text-align: center; border-bottom: 3px solid #f59e0b;">
+            <div style="font-size: 0.75rem; color: #86868b; text-transform: uppercase;">Pending</div>
+            <div style="font-size: 1.8rem; font-weight: bold; color: #f59e0b;">${pending}</div>
         </div>
+        ${Object.entries(categories).map(([name, data]) => `
+            <div class="glass-card" style="padding: 15px 20px; min-width: 120px; text-align: center;">
+                <i class="fas ${data.icon}" style="color: ${data.color}; font-size: 1.2rem; margin-bottom: 8px;"></i>
+                <div style="font-size: 0.7rem; color: #86868b;">${name}</div>
+                <div style="font-size: 1.2rem; font-weight: bold;">${data.count}</div>
+            </div>
+        `).join('')}
     `;
 }
 
