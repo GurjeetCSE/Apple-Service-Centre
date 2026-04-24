@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Apple Service Centre</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body style="background: #000;">
+
+<!-- HEADER -->
+<header style="background: rgba(0,0,0,0.8); border-bottom: 1px solid rgba(255,255,255,0.1);">
+    <div class="logo">🍎 Admin Dashboard</div>
+    <nav>
+        <a href="index.html">Back to Site</a>
+        <a href="#" onclick="location.reload()">Refresh Data</a>
+    </nav>
+</header>
+
+<section class="section">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px;">
+        <div>
+            <h1 style="font-size: 2.5rem; margin-bottom: 10px;">Repair Management</h1>
+            <p style="color: #86868b;">Manage all incoming service requests and track their status.</p>
+        </div>
+        <div id="stats-summary" style="display: flex; gap: 20px;">
+            <!-- Stats will be injected here -->
+        </div>
+    </div>
+
+    <div class="glass-card" style="padding: 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background: rgba(255,255,255,0.05); color: #86868b; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
+                    <th style="padding: 20px;">Customer</th>
+                    <th style="padding: 20px;">Device</th>
+                    <th style="padding: 20px;">Issue</th>
+                    <th style="padding: 20px;">Status</th>
+                    <th style="padding: 20px;">Date</th>
+                </tr>
+            </thead>
+            <tbody id="admin-repairs-list">
+                <tr>
+                    <td colspan="5" style="padding: 40px; text-align: center; color: #86868b;">Loading repairs...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', fetchAllRepairs);
+
+async function fetchAllRepairs() {
+    const list = document.getElementById('admin-repairs-list');
+    try {
+        const res = await fetch('/api/admin-repairs');
+        const data = await res.json();
+        
+        if (data.success && data.repairs.length > 0) {
+            updateStats(data.repairs);
+            list.innerHTML = data.repairs.map(repair => `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+                    <td style="padding: 20px;">
+                        <div style="font-weight: 600;">${repair.user_email}</div>
+                    </td>
+                    <td style="padding: 20px;">
+                        <span style="color: #60a5fa;">${repair.device_type}</span><br>
+                        <span style="font-size: 0.8rem; color: #86868b;">${repair.model}</span>
+                    </td>
+                    <td style="padding: 20px; font-size: 0.9rem; max-width: 300px; color: #d2d2d7;">${repair.issue}</td>
+                    <td style="padding: 20px;">
+                        <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; background: ${getStatusColor(repair.status)}; color: white;">
+                            ${repair.status.toUpperCase()}
+                        </span>
+                    </td>
+                    <td style="padding: 20px; font-size: 0.85rem; color: #86868b;">
+                        ${new Date(repair.created_at).toLocaleDateString()}
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            list.innerHTML = '<tr><td colspan="5" style="padding: 60px; text-align: center; color: #86868b;">No repairs found in the database.</td></tr>';
+        }
+    } catch (e) {
+        list.innerHTML = '<tr><td colspan="5" style="padding: 60px; text-align: center; color: #f87171;">Failed to load data.</td></tr>';
+    }
+}
+
+function updateStats(repairs) {
+    const total = repairs.length;
+    const pending = repairs.filter(r => r.status.toLowerCase() === 'pending').length;
+    const stats = document.getElementById('stats-summary');
+    stats.innerHTML = `
+        <div class="glass-card" style="padding: 10px 20px; min-width: 120px;">
+            <div style="font-size: 0.75rem; color: #86868b;">Total Requests</div>
+            <div style="font-size: 1.5rem; font-weight: bold;">${total}</div>
+        </div>
+        <div class="glass-card" style="padding: 10px 20px; min-width: 120px; border-left: 3px solid #f59e0b;">
+            <div style="font-size: 0.75rem; color: #86868b;">Pending</div>
+            <div style="font-size: 1.5rem; font-weight: bold; color: #f59e0b;">${pending}</div>
+        </div>
+    `;
+}
+
+function getStatusColor(status) {
+    switch(status.toLowerCase()) {
+        case 'pending': return '#f59e0b';
+        case 'in progress': return '#3b82f6';
+        case 'completed': return '#10b981';
+        default: return '#6b7280';
+    }
+}
+</script>
+
+</body>
+</html>
