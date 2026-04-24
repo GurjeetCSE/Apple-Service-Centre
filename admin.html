@@ -71,9 +71,11 @@ async function fetchAllRepairs() {
                     </td>
                     <td style="padding: 20px; font-size: 0.9rem; max-width: 300px; color: #d2d2d7;">${repair.issue}</td>
                     <td style="padding: 20px;">
-                        <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; background: ${getStatusColor(repair.status)}; color: white;">
-                            ${repair.status.toUpperCase()}
-                        </span>
+                        <select onchange="updateStatus(${repair.id}, this.value)" style="padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: ${getStatusColor(repair.status)}; color: white; border: none; cursor: pointer;">
+                            <option value="Pending" ${repair.status === 'Pending' ? 'selected' : ''}>PENDING</option>
+                            <option value="In Progress" ${repair.status === 'In Progress' ? 'selected' : ''}>IN PROGRESS</option>
+                            <option value="Completed" ${repair.status === 'Completed' ? 'selected' : ''}>COMPLETED</option>
+                        </select>
                     </td>
                     <td style="padding: 20px; font-size: 0.85rem; color: #86868b;">
                         ${new Date(repair.created_at).toLocaleDateString()}
@@ -85,6 +87,24 @@ async function fetchAllRepairs() {
         }
     } catch (e) {
         list.innerHTML = '<tr><td colspan="5" style="padding: 60px; text-align: center; color: #f87171;">Failed to load data.</td></tr>';
+    }
+}
+
+async function updateStatus(repairId, newStatus) {
+    try {
+        const res = await fetch('/api/update-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ repairId, newStatus })
+        });
+        const data = await res.json();
+        if (data.success) {
+            fetchAllRepairs(); // Refresh data
+        } else {
+            alert('Failed to update status: ' + data.message);
+        }
+    } catch (e) {
+        alert('Error updating status');
     }
 }
 
