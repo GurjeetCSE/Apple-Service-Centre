@@ -55,7 +55,25 @@
 
             <div style="margin-top: 40px; display: flex; justify-content: center; gap: 15px;">
                 <a href="contact.html" class="btn-primary">Book a New Repair</a>
+                <button onclick="togglePasswordForm()" class="btn-secondary">Change Password</button>
                 <button onclick="handleLogout()" class="btn-secondary" style="color: #f87171; border-color: rgba(248, 113, 113, 0.3);">Logout</button>
+            </div>
+
+            <div id="password-form" style="display: none; margin-top: 30px; text-align: left; background: rgba(255,255,255,0.02); padding: 25px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                <h3 style="margin-bottom: 20px; font-size: 1.2rem;">Change Password</h3>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; font-size: 0.8rem; color: #86868b; margin-bottom: 5px;">Current Password</label>
+                    <input type="password" id="current-pw" style="width: 100%; padding: 10px; background: #000; border: 1px solid #333; color: #fff; border-radius: 6px;">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 0.8rem; color: #86868b; margin-bottom: 5px;">New Password</label>
+                    <input type="password" id="new-pw" style="width: 100%; padding: 10px; background: #000; border: 1px solid #333; color: #fff; border-radius: 6px;">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="changePassword()" class="btn-primary" style="flex: 1;">Update Password</button>
+                    <button onclick="togglePasswordForm()" class="btn-secondary" style="flex: 1;">Cancel</button>
+                </div>
+                <p id="pw-status" style="margin-top: 15px; font-size: 0.8rem; text-align: center;"></p>
             </div>
         </div>
     </div>
@@ -208,6 +226,48 @@ async function saveProfile() {
         }
     } catch (e) {
         alert('Error updating profile');
+    }
+}
+
+function togglePasswordForm() {
+    const form = document.getElementById('password-form');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    if (form.style.display === 'block') {
+        form.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+async function changePassword() {
+    const currentPassword = document.getElementById('current-pw').value;
+    const newPassword = document.getElementById('new-pw').value;
+    const status = document.getElementById('pw-status');
+
+    if (!currentPassword || !newPassword) return;
+
+    status.textContent = '⌛ Processing...';
+    status.style.color = '#60a5fa';
+
+    try {
+        const res = await fetch('/api/change-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ currentPassword, newPassword })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            status.textContent = '✅ ' + data.message;
+            status.style.color = '#10b981';
+            document.getElementById('current-pw').value = '';
+            document.getElementById('new-pw').value = '';
+            setTimeout(togglePasswordForm, 3000);
+        } else {
+            status.textContent = '❌ ' + data.message;
+            status.style.color = '#f87171';
+        }
+    } catch (e) {
+        status.textContent = '❌ Error changing password.';
+        status.style.color = '#f87171';
     }
 }
 </script>
