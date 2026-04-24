@@ -6,6 +6,7 @@
     <title>Admin Dashboard - Apple Service Centre</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body style="background: #000;">
 
@@ -29,27 +30,34 @@
         </div>
     </div>
 
-    <div class="glass-card" style="padding: 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
-        <table style="width: 100%; border-collapse: collapse; text-align: left;">
-            <thead>
-                <tr style="background: rgba(255,255,255,0.05); color: #86868b; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
-                    <th style="padding: 20px;">Customer</th>
-                    <th style="padding: 20px;">Device</th>
-                    <th style="padding: 20px;">Issue</th>
-                    <th style="padding: 20px;">Status</th>
-                    <th style="padding: 20px;">Date</th>
-                </tr>
-            </thead>
-            <tbody id="admin-repairs-list">
-                <tr>
-                    <td colspan="5" style="padding: 40px; text-align: center; color: #86868b;">Loading repairs...</td>
-                </tr>
-            </tbody>
-        </table>
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-bottom: 40px;">
+        <div class="glass-card" style="padding: 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="background: rgba(255,255,255,0.05); color: #86868b; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
+                        <th style="padding: 20px;">Customer</th>
+                        <th style="padding: 20px;">Device</th>
+                        <th style="padding: 20px;">Issue</th>
+                        <th style="padding: 20px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-repairs-list">
+                    <tr>
+                        <td colspan="4" style="padding: 40px; text-align: center; color: #86868b;">Loading repairs...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="glass-card" style="padding: 30px; display: flex; flex-direction: column; align-items: center;">
+            <h3 style="margin-bottom: 20px; font-size: 1.1rem; color: #86868b;">Device Distribution</h3>
+            <canvas id="repairChart" width="300" height="300"></canvas>
+        </div>
     </div>
 </section>
 
 <script>
+let repairChart = null;
 document.addEventListener('DOMContentLoaded', fetchAllRepairs);
 
 async function fetchAllRepairs() {
@@ -60,34 +68,66 @@ async function fetchAllRepairs() {
         
         if (data.success && data.repairs.length > 0) {
             updateStats(data.repairs);
+            renderChart(data.repairs);
             list.innerHTML = data.repairs.map(repair => `
                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
                     <td style="padding: 20px;">
-                        <div style="font-weight: 600;">${repair.user_email}</div>
+                        <div style="font-weight: 600; font-size: 0.85rem;">${repair.user_email}</div>
                     </td>
                     <td style="padding: 20px;">
-                        <span style="color: #60a5fa;">${repair.device_type}</span><br>
-                        <span style="font-size: 0.8rem; color: #86868b;">${repair.model}</span>
+                        <span style="color: #60a5fa; font-size: 0.9rem;">${repair.device_type}</span><br>
+                        <span style="font-size: 0.75rem; color: #86868b;">${repair.model}</span>
                     </td>
-                    <td style="padding: 20px; font-size: 0.9rem; max-width: 300px; color: #d2d2d7;">${repair.issue}</td>
+                    <td style="padding: 20px; font-size: 0.85rem; max-width: 200px; color: #d2d2d7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${repair.issue}">${repair.issue}</td>
                     <td style="padding: 20px;">
-                        <select onchange="updateStatus(${repair.id}, this.value)" style="padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: ${getStatusColor(repair.status)}; color: white; border: none; cursor: pointer;">
+                        <select onchange="updateStatus(${repair.id}, this.value)" style="padding: 6px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; background: ${getStatusColor(repair.status)}; color: white; border: none; cursor: pointer;">
                             <option value="Pending" ${repair.status === 'Pending' ? 'selected' : ''}>PENDING</option>
                             <option value="In Progress" ${repair.status === 'In Progress' ? 'selected' : ''}>IN PROGRESS</option>
                             <option value="Completed" ${repair.status === 'Completed' ? 'selected' : ''}>COMPLETED</option>
                         </select>
                     </td>
-                    <td style="padding: 20px; font-size: 0.85rem; color: #86868b;">
-                        ${new Date(repair.created_at).toLocaleDateString()}
-                    </td>
                 </tr>
             `).join('');
         } else {
-            list.innerHTML = '<tr><td colspan="5" style="padding: 60px; text-align: center; color: #86868b;">No repairs found in the database.</td></tr>';
+            list.innerHTML = '<tr><td colspan="4" style="padding: 60px; text-align: center; color: #86868b;">No repairs found.</td></tr>';
         }
     } catch (e) {
-        list.innerHTML = '<tr><td colspan="5" style="padding: 60px; text-align: center; color: #f87171;">Failed to load data.</td></tr>';
+        list.innerHTML = '<tr><td colspan="4" style="padding: 60px; text-align: center; color: #f87171;">Failed to load data.</td></tr>';
     }
+}
+
+function renderChart(repairs) {
+    const counts = {};
+    repairs.forEach(r => {
+        counts[r.device_type] = (counts[r.device_type] || 0) + 1;
+    });
+
+    const ctx = document.getElementById('repairChart').getContext('2d');
+    
+    if (repairChart) repairChart.destroy();
+    
+    repairChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(counts),
+            datasets: [{
+                data: Object.values(counts),
+                backgroundColor: ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'],
+                borderWidth: 0,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: '#86868b', padding: 20, font: { size: 12 } }
+                }
+            },
+            cutout: '70%'
+        }
+    });
 }
 
 async function updateStatus(repairId, newStatus) {
