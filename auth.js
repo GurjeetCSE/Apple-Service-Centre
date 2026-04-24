@@ -42,6 +42,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             greeting.innerHTML = `<span style="width:8px;height:8px;background:#34d399;border-radius:50%;display:inline-block;"></span> ${data.user.name}`;
             nav.appendChild(greeting);
 
+            checkNotifications(nav);
+
             const logoutLink = document.createElement('a');
             logoutLink.href = '#';
             logoutLink.className = 'auth-link';
@@ -69,6 +71,33 @@ document.addEventListener('DOMContentLoaded', async () => {
             nav.appendChild(signupLink);
         }
     } catch (e) {
-        // If server is not running (static file mode), just ignore
+        console.error('Auth check failed:', e);
     }
-});
+}
+
+async function checkNotifications(nav) {
+    try {
+        const res = await fetch('/api/get-notifications');
+        const data = await res.json();
+        
+        if (data.success && data.notifications.length > 0) {
+            const notif = document.createElement('div');
+            notif.className = 'auth-link notification-bell';
+            notif.style.cssText = 'position: relative; color: #f59e0b; padding: 8px; cursor: pointer; display: flex; align-items: center;';
+            notif.innerHTML = `
+                <i class="fas fa-bell"></i>
+                <span style="position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; border: 2px solid #000;"></span>
+            `;
+            
+            notif.title = data.notifications[0].message;
+            notif.onclick = () => {
+                alert(data.notifications.map(n => n.message).join('\n\n'));
+                notif.remove();
+            };
+            
+            nav.insertBefore(notif, nav.firstChild);
+        }
+    } catch (e) {}
+}
+
+document.addEventListener('DOMContentLoaded', checkLogin);

@@ -10,6 +10,17 @@ module.exports = async (req, res) => {
 
     try {
         const db = await getDB();
+        
+        // Get user_email for this repair to send notification
+        const stmt = db.prepare("SELECT user_email, device_type FROM repairs WHERE id = ?");
+        stmt.bind([repairId]);
+        if (stmt.step()) {
+            const repair = stmt.getAsObject();
+            const message = `Your ${repair.device_type} repair status has been updated to: ${newStatus}`;
+            db.run("INSERT INTO notifications (user_email, message) VALUES (?, ?)", [repair.user_email, message]);
+        }
+        stmt.free();
+
         db.run("UPDATE repairs SET status = ? WHERE id = ?", [newStatus, repairId]);
         saveDB();
         res.json({ success: true, message: 'Status updated successfully!' });
