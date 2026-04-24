@@ -4,7 +4,8 @@ const path = require('path');
 
 // Use /tmp for Vercel, or local directory for dev
 const DB_PATH = process.env.VERCEL ? '/tmp/users.db' : path.join(process.cwd(), 'users.db');
-let db;
+let db = null;
+let SQL = null;
 
 /**
  * Initializes and returns the SQLite database instance.
@@ -13,11 +14,13 @@ let db;
 async function getDB() {
     if (db) return db;
     
+    // Vercel serverless functions need fresh init on cold starts
     try {
-        const SQL = await initSqlJs({
-            // Use relative path from api/ folder
-            locateFile: file => path.join(__dirname, '..', 'node_modules', 'sql.js', 'dist', file)
-        });
+        if (!SQL) {
+            SQL = await initSqlJs({
+                locateFile: file => `https://sql.js.org/dist/${file}`
+            });
+        }
 
         if (fs.existsSync(DB_PATH)) {
             const fileBuffer = fs.readFileSync(DB_PATH);
