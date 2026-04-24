@@ -10,14 +10,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         const nav = document.querySelector('nav');
         if (!nav) return;
 
+        // Update elements that need the user's name
+        if (data.loggedIn) {
+            document.querySelectorAll('.user-name').forEach(el => {
+                el.textContent = data.user.name;
+            });
+            document.querySelectorAll('.logged-in-only').forEach(el => {
+                el.style.display = 'block';
+            });
+            document.querySelectorAll('.logged-out-only').forEach(el => {
+                el.style.display = 'none';
+            });
+        } else {
+            document.querySelectorAll('.logged-in-only').forEach(el => {
+                el.style.display = 'none';
+            });
+            document.querySelectorAll('.logged-out-only').forEach(el => {
+                el.style.display = 'block';
+            });
+        }
+
         // Remove existing auth links
         nav.querySelectorAll('.auth-link').forEach(el => el.remove());
 
         if (data.loggedIn) {
-            // Show user greeting + logout
-            const greeting = document.createElement('span');
+            // Show user greeting (linked to profile) + logout
+            const greeting = document.createElement('a');
+            greeting.href = 'profile.html';
             greeting.className = 'auth-link';
-            greeting.style.cssText = 'color: #60a5fa; font-size: 0.88rem; font-weight: 500; padding: 8px 12px; display: flex; align-items: center; gap: 6px;';
+            greeting.style.cssText = 'color: #60a5fa; font-size: 0.88rem; font-weight: 500; padding: 8px 12px; display: flex; align-items: center; gap: 6px; text-decoration: none;';
             greeting.innerHTML = `<span style="width:8px;height:8px;background:#34d399;border-radius:50%;display:inline-block;"></span> ${data.user.name}`;
             nav.appendChild(greeting);
 

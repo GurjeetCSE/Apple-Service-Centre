@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - Apple Service Centre</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+    <div class="logo">🍎 Apple Service Centre</div>
+    <button class="menu-toggle" onclick="document.querySelector('nav').classList.toggle('open')" aria-label="Menu">☰</button>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="services.html">Services</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+    </nav>
+</header>
+
+<!-- PROFILE SECTION -->
+<section class="section">
+    <div class="page-header" style="margin-bottom: 40px;">
+        <h1>My Account</h1>
+        <p>Manage your profile and view your service history</p>
+    </div>
+
+    <div style="max-width: 800px; margin: 0 auto;">
+        <div class="glass-card" style="padding: 40px; text-align: center;">
+            <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #2563eb, #3b82f6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: white; margin: 0 auto 20px;">
+                <i class="fas fa-user"></i>
+            </div>
+            <h2 id="profile-name" style="font-size: 2rem; margin-bottom: 5px;">Loading...</h2>
+            <p id="profile-email" style="color: #86868b; margin-bottom: 30px;">loading@example.com</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: left; margin-top: 40px;">
+                <div class="glass-card" style="padding: 20px; background: rgba(255,255,255,0.03);">
+                    <h4 style="margin-bottom: 10px; color: #60a5fa;"><i class="fas fa-calendar-alt"></i> Member Since</h4>
+                    <p style="font-size: 0.9rem;">April 2026</p>
+                </div>
+                <div class="glass-card" style="padding: 20px; background: rgba(255,255,255,0.03);">
+                    <h4 style="margin-bottom: 10px; color: #60a5fa;"><i class="fas fa-tools"></i> Active Repairs</h4>
+                    <p style="font-size: 0.9rem;">No active repairs found</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 40px; display: flex; justify-content: center; gap: 15px;">
+                <a href="contact.html" class="btn-primary">Book a New Repair</a>
+                <button onclick="handleLogout()" class="btn-secondary" style="color: #f87171; border-color: rgba(248, 113, 113, 0.3);">Logout</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+    <div class="footer-bottom">
+        <p>© 2026 Apple Service Centre. All rights reserved.</p>
+    </div>
+</footer>
+
+<script src="auth.js"></script>
+<script>
+// Check login status and redirect if not logged in
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const res = await fetch('/api/user');
+        const data = await res.json();
+        
+        if (!data.loggedIn) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        document.getElementById('profile-name').textContent = data.user.name;
+        document.getElementById('profile-email').textContent = data.user.email;
+    } catch (e) {
+        console.error('Error fetching profile:', e);
+    }
+});
+
+async function handleLogout() {
+    await fetch('/api/logout');
+    window.location.href = 'index.html';
+}
+</script>
+
+</body>
+</html>
