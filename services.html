@@ -29,35 +29,53 @@
     <p>Professional repair solutions for every Apple device</p>
 </div>
 
+<!-- FILTERS -->
+<section class="section" style="padding-bottom: 0;">
+    <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
+        <div class="glass-card" style="display: flex; align-items: center; padding: 5px 20px; border-radius: 50px;">
+            <i class="fas fa-search" style="color: #86868b; margin-right: 15px;"></i>
+            <input type="text" id="service-search" placeholder="Search for a repair (e.g. 'screen', 'battery')..." oninput="filterServices()" style="width: 100%; padding: 12px 0; background: none; border: none; color: white; font-size: 1rem; outline: none;">
+        </div>
+        
+        <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;" id="category-filters">
+            <button class="btn-secondary filter-btn active" onclick="setCategory('all')">All</button>
+            <button class="btn-secondary filter-btn" onclick="setCategory('iphone')">iPhone</button>
+            <button class="btn-secondary filter-btn" onclick="setCategory('macbook')">MacBook</button>
+            <button class="btn-secondary filter-btn" onclick="setCategory('ipad')">iPad</button>
+            <button class="btn-secondary filter-btn" onclick="setCategory('watch')">Watch</button>
+        </div>
+    </div>
+</section>
+
 <!-- SERVICES -->
 <section class="section">
-    <div class="grid-3">
-        <div class="feature-card">
+    <div class="grid-3" id="services-grid">
+        <div class="feature-card service-item" data-category="iphone" data-keywords="screen display glass broken">
             <span class="feature-icon">📱</span>
             <h3>iPhone Screen Repair</h3>
             <p>Cracked or broken screen? We replace it with genuine Apple displays, restoring your iPhone to perfect condition.</p>
         </div>
-        <div class="feature-card">
+        <div class="feature-card service-item" data-category="macbook" data-keywords="macbook laptop display screen keyboard">
             <span class="feature-icon">💻</span>
             <h3>MacBook Repair</h3>
             <p>From display issues to logic board repairs, our experts handle all MacBook models with precision and care.</p>
         </div>
-        <div class="feature-card">
+        <div class="feature-card service-item" data-category="iphone macbook ipad" data-keywords="battery power charge drain">
             <span class="feature-icon">🔋</span>
             <h3>Battery Replacement</h3>
             <p>Restore your device's battery life with genuine Apple batteries. Available for iPhone, iPad, and MacBook.</p>
         </div>
-        <div class="feature-card">
+        <div class="feature-card service-item" data-category="other" data-keywords="software ios macos slow lag virus restore">
             <span class="feature-icon">⚙️</span>
             <h3>Software Issue Fix</h3>
             <p>iOS/macOS troubleshooting, data recovery, system restore, and performance optimization services.</p>
         </div>
-        <div class="feature-card">
+        <div class="feature-card service-item" data-category="other" data-keywords="hardware port charging speaker microphone camera">
             <span class="feature-icon">🔧</span>
             <h3>Hardware Repair</h3>
             <p>Charging port, speaker, microphone, camera module — we repair all internal hardware components.</p>
         </div>
-        <div class="feature-card">
+        <div class="feature-card service-item" data-category="iphone macbook" data-keywords="water liquid spill damage">
             <span class="feature-icon">💧</span>
             <h3>Water Damage Recovery</h3>
             <p>Accidental water exposure? Our micro-level repair techniques can recover your device from liquid damage.</p>
@@ -131,6 +149,41 @@
 
 <script src="auth.js"></script>
 <script>
+let currentCategory = 'all';
+
+function setCategory(cat) {
+    currentCategory = cat;
+    
+    // Update button states
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.textContent.toLowerCase() === cat) btn.classList.add('active');
+        if (cat === 'all' && btn.textContent === 'All') btn.classList.add('active');
+    });
+    
+    filterServices();
+}
+
+function filterServices() {
+    const query = document.getElementById('service-search').value.toLowerCase();
+    const items = document.querySelectorAll('.service-item');
+    
+    items.forEach(item => {
+        const category = item.getAttribute('data-category');
+        const keywords = item.getAttribute('data-keywords');
+        const title = item.querySelector('h3').textContent.toLowerCase();
+        
+        const matchesCategory = currentCategory === 'all' || category.includes(currentCategory);
+        const matchesSearch = title.includes(query) || keywords.includes(query);
+        
+        if (matchesCategory && matchesSearch) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
 async function handleBooking(e) {
     e.preventDefault();
     const status = document.getElementById('booking-status');
