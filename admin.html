@@ -33,9 +33,11 @@
     <div style="display: flex; gap: 15px; margin-bottom: 25px;">
         <button id="tab-repairs" onclick="switchTab('repairs')" class="btn-primary" style="padding: 10px 25px;">Repair Requests</button>
         <button id="tab-messages" onclick="switchTab('messages')" class="btn-secondary" style="padding: 10px 25px;">Customer Messages</button>
+        <button id="tab-settings" onclick="switchTab('settings')" class="btn-secondary" style="padding: 10px 25px;">System Settings</button>
     </div>
 
     <div id="repairs-section" style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-bottom: 40px;">
+        <!-- ... existing repairs table ... -->
         <div class="glass-card" style="padding: 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
             <table style="width: 100%; border-collapse: collapse; text-align: left;">
                 <thead>
@@ -46,14 +48,9 @@
                         <th style="padding: 20px;">Status</th>
                     </tr>
                 </thead>
-                <tbody id="admin-repairs-list">
-                    <tr>
-                        <td colspan="4" style="padding: 40px; text-align: center; color: #86868b;">Loading repairs...</td>
-                    </tr>
-                </tbody>
+                <tbody id="admin-repairs-list"></tbody>
             </table>
         </div>
-        
         <div class="glass-card" style="padding: 30px; display: flex; flex-direction: column; align-items: center;">
             <h3 style="margin-bottom: 20px; font-size: 1.1rem; color: #86868b;">Device Distribution</h3>
             <canvas id="repairChart" width="300" height="300"></canvas>
@@ -71,12 +68,25 @@
                         <th style="padding: 20px;">Date</th>
                     </tr>
                 </thead>
-                <tbody id="admin-messages-list">
-                    <tr>
-                        <td colspan="4" style="padding: 40px; text-align: center; color: #86868b;">Loading messages...</td>
-                    </tr>
-                </tbody>
+                <tbody id="admin-messages-list"></tbody>
             </table>
+        </div>
+    </div>
+
+    <div id="settings-section" style="display: none; margin-bottom: 40px;">
+        <div class="glass-card" style="max-width: 600px;">
+            <h3 style="margin-bottom: 25px;">System Configuration</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                <div>
+                    <h4 style="margin-bottom: 5px;">Maintenance Mode</h4>
+                    <p style="font-size: 0.8rem; color: #86868b;">Temporarily disable new repair bookings for maintenance.</p>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button id="btn-mm-off" onclick="toggleMaintenance('off')" class="btn-primary" style="padding: 8px 15px; font-size: 0.8rem;">OFF</button>
+                    <button id="btn-mm-on" onclick="toggleMaintenance('on')" class="btn-secondary" style="padding: 8px 15px; font-size: 0.8rem;">ON</button>
+                </div>
+            </div>
+            <p id="settings-status" style="margin-top: 15px; font-size: 0.8rem; text-align: center;"></p>
         </div>
     </div>
 </section>
@@ -149,23 +159,60 @@ async function fetchAllMessages() {
 }
 
 function switchTab(tab) {
-    const repairSec = document.getElementById('repairs-section');
-    const msgSec = document.getElementById('messages-section');
-    const repairBtn = document.getElementById('tab-repairs');
-    const msgBtn = document.getElementById('tab-messages');
+    const sections = ['repairs', 'messages', 'settings'];
+    sections.forEach(s => {
+        document.getElementById(`${s}-section`).style.display = s === tab ? (s === 'repairs' ? 'grid' : 'block') : 'none';
+        document.getElementById(`tab-${s}`).className = s === tab ? 'btn-primary' : 'btn-secondary';
+    });
     
-    if (tab === 'repairs') {
-        repairSec.style.display = 'grid';
-        msgSec.style.display = 'none';
-        repairBtn.className = 'btn-primary';
-        msgBtn.className = 'btn-secondary';
-        fetchAllRepairs();
+    if (tab === 'repairs') fetchAllRepairs();
+    if (tab === 'messages') fetchAllMessages();
+    if (tab === 'settings') fetchSettings();
+}
+
+async function fetchSettings() {
+    const status = document.getElementById('settings-status');
+    try {
+        const res = await fetch('/api/get-settings');
+        const data = await res.json();
+        if (data.success) {
+            updateMaintenanceUI(data.maintenanceMode);
+        }
+    } catch (e) {
+        status.textContent = 'Error loading settings';
+    }
+}
+
+async function toggleMaintenance(value) {
+    const status = document.getElementById('settings-status');
+    status.textContent = 'Updating...';
+    try {
+        const res = await fetch('/api/update-settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: 'maintenance_mode', value })
+        });
+        const data = await res.json();
+        if (data.success) {
+            updateMaintenanceUI(value);
+            status.textContent = 'System updated successfully!';
+            status.style.color = '#34d399';
+        }
+    } catch (e) {
+        status.textContent = 'Failed to update settings';
+        status.style.color = '#f87171';
+    }
+}
+
+function updateMaintenanceUI(mode) {
+    const offBtn = document.getElementById('btn-mm-off');
+    const onBtn = document.getElementById('btn-mm-on');
+    if (mode === 'on') {
+        offBtn.className = 'btn-secondary';
+        onBtn.className = 'btn-primary';
     } else {
-        repairSec.style.display = 'none';
-        msgSec.style.display = 'block';
-        repairBtn.className = 'btn-secondary';
-        msgBtn.className = 'btn-primary';
-        fetchAllMessages();
+        offBtn.className = 'btn-primary';
+        onBtn.className = 'btn-secondary';
     }
 }
 

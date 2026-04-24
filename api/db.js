@@ -62,6 +62,11 @@ async function getDB() {
                     message TEXT NOT NULL,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )`);
+                db.run(`CREATE TABLE IF NOT EXISTS settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL
+                )`);
+                db.run("INSERT OR IGNORE INTO settings (key, value) VALUES ('maintenance_mode', 'off')");
         }
         return db;
     } catch (e) {
@@ -76,6 +81,8 @@ async function getDB() {
         db.run(`CREATE TABLE IF NOT EXISTS reviews (id INTEGER PRIMARY KEY AUTOINCREMENT, user_name TEXT NOT NULL, rating INTEGER NOT NULL, comment TEXT NOT NULL)`);
         db.run(`CREATE TABLE IF NOT EXISTS notifications (id INTEGER PRIMARY KEY AUTOINCREMENT, user_email TEXT NOT NULL, message TEXT NOT NULL, is_read INTEGER DEFAULT 0)`);
         db.run(`CREATE TABLE IF NOT EXISTS contacts (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, email TEXT NOT NULL, subject TEXT NOT NULL, message TEXT NOT NULL)`);
+        db.run(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)`);
+        db.run("INSERT OR IGNORE INTO settings (key, value) VALUES ('maintenance_mode', 'off')");
         return db;
     }
 }

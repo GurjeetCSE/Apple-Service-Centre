@@ -187,6 +187,21 @@ function filterServices() {
 async function handleBooking(e) {
     e.preventDefault();
     const status = document.getElementById('booking-status');
+    const btn = e.target.querySelector('button');
+
+    // Check Maintenance Mode
+    try {
+        const mres = await fetch('/api/get-settings');
+        const mdata = await mres.json();
+        if (mdata.success && mdata.maintenanceMode === 'on') {
+            status.textContent = '⚠️ Service is temporarily unavailable due to maintenance. Please try again later.';
+            status.style.color = '#f87171';
+            return;
+        }
+    } catch (e) {}
+
+    btn.textContent = 'Processing...';
+    btn.disabled = true;
     const deviceType = document.getElementById('device-type').value;
     const model = document.getElementById('device-model').value;
     const issue = document.getElementById('issue-details').value;
