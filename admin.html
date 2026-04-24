@@ -37,19 +37,25 @@
     </div>
 
     <div id="repairs-section" style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-bottom: 40px;">
-        <!-- ... existing repairs table ... -->
-        <div class="glass-card" style="padding: 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
-            <table style="width: 100%; border-collapse: collapse; text-align: left;">
-                <thead>
-                    <tr style="background: rgba(255,255,255,0.05); color: #86868b; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
-                        <th style="padding: 20px;">Customer</th>
-                        <th style="padding: 20px;">Device</th>
-                        <th style="padding: 20px;">Issue</th>
-                        <th style="padding: 20px;">Status</th>
-                    </tr>
-                </thead>
-                <tbody id="admin-repairs-list"></tbody>
-            </table>
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <div class="glass-card" style="display: flex; align-items: center; padding: 10px 20px; border-radius: 50px; background: rgba(255,255,255,0.02);">
+                <i class="fas fa-search" style="color: #86868b; margin-right: 15px;"></i>
+                <input type="text" id="admin-repair-search" placeholder="Search repairs by customer, device, or issue..." oninput="filterAdminRepairs()" style="width: 100%; padding: 8px 0; background: none; border: none; color: white; font-size: 0.9rem; outline: none;">
+            </div>
+            
+            <div class="glass-card" style="padding: 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <thead>
+                        <tr style="background: rgba(255,255,255,0.05); color: #86868b; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
+                            <th style="padding: 20px;">Customer</th>
+                            <th style="padding: 20px;">Device</th>
+                            <th style="padding: 20px;">Issue</th>
+                            <th style="padding: 20px;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-repairs-list"></tbody>
+                </table>
+            </div>
         </div>
         <div class="glass-card" style="padding: 30px; display: flex; flex-direction: column; align-items: center;">
             <h3 style="margin-bottom: 20px; font-size: 1.1rem; color: #86868b;">Device Distribution</h3>
@@ -93,43 +99,62 @@
 
 <script>
 let repairChart = null;
+let allRepairsRaw = [];
 document.addEventListener('DOMContentLoaded', fetchAllRepairs);
 
 async function fetchAllRepairs() {
     if (document.getElementById('repairs-section').style.display === 'none') return;
-    const list = document.getElementById('admin-repairs-list');
     try {
         const res = await fetch('/api/admin-repairs');
         const data = await res.json();
         
-        if (data.success && data.repairs.length > 0) {
-            updateStats(data.repairs);
-            renderChart(data.repairs);
-            list.innerHTML = data.repairs.map(repair => `
-                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
-                    <td style="padding: 20px;">
-                        <div style="font-weight: 600; font-size: 0.85rem;">${repair.user_email}</div>
-                    </td>
-                    <td style="padding: 20px;">
-                        <span style="color: #60a5fa; font-size: 0.9rem;">${repair.device_type}</span><br>
-                        <span style="font-size: 0.75rem; color: #86868b;">${repair.model}</span>
-                    </td>
-                    <td style="padding: 20px; font-size: 0.85rem; max-width: 200px; color: #d2d2d7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${repair.issue}">${repair.issue}</td>
-                    <td style="padding: 20px;">
-                        <select onchange="updateStatus(${repair.id}, this.value)" style="padding: 6px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; background: ${getStatusColor(repair.status)}; color: white; border: none; cursor: pointer;">
-                            <option value="Pending" ${repair.status === 'Pending' ? 'selected' : ''}>PENDING</option>
-                            <option value="In Progress" ${repair.status === 'In Progress' ? 'selected' : ''}>IN PROGRESS</option>
-                            <option value="Completed" ${repair.status === 'Completed' ? 'selected' : ''}>COMPLETED</option>
-                        </select>
-                    </td>
-                </tr>
-            `).join('');
-        } else {
-            list.innerHTML = '<tr><td colspan="4" style="padding: 60px; text-align: center; color: #86868b;">No repairs found.</td></tr>';
+        if (data.success) {
+            allRepairsRaw = data.repairs;
+            displayRepairs(allRepairsRaw);
+            updateStats(allRepairsRaw);
+            renderChart(allRepairsRaw);
         }
     } catch (e) {
-        list.innerHTML = '<tr><td colspan="4" style="padding: 60px; text-align: center; color: #f87171;">Failed to load data.</td></tr>';
+        document.getElementById('admin-repairs-list').innerHTML = '<tr><td colspan="4" style="padding: 60px; text-align: center; color: #f87171;">Failed to load data.</td></tr>';
     }
+}
+
+function filterAdminRepairs() {
+    const query = document.getElementById('admin-repair-search').value.toLowerCase();
+    const filtered = allRepairsRaw.filter(r => 
+        r.user_email.toLowerCase().includes(query) ||
+        r.device_type.toLowerCase().includes(query) ||
+        r.model.toLowerCase().includes(query) ||
+        r.issue.toLowerCase().includes(query)
+    );
+    displayRepairs(filtered);
+}
+
+function displayRepairs(repairs) {
+    const list = document.getElementById('admin-repairs-list');
+    if (repairs.length === 0) {
+        list.innerHTML = '<tr><td colspan="4" style="padding: 40px; text-align: center; color: #86868b;">No matching repairs found.</td></tr>';
+        return;
+    }
+    list.innerHTML = repairs.map(repair => `
+        <tr class="page-transition" style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+            <td style="padding: 20px;">
+                <div style="font-weight: 600; font-size: 0.85rem;">${repair.user_email}</div>
+            </td>
+            <td style="padding: 20px;">
+                <span style="color: #60a5fa; font-size: 0.9rem;">${repair.device_type}</span><br>
+                <span style="font-size: 0.75rem; color: #86868b;">${repair.model}</span>
+            </td>
+            <td style="padding: 20px; font-size: 0.85rem; max-width: 200px; color: #d2d2d7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${repair.issue}">${repair.issue}</td>
+            <td style="padding: 20px;">
+                <select onchange="updateStatus(${repair.id}, this.value)" style="padding: 6px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; background: ${getStatusColor(repair.status)}; color: white; border: none; cursor: pointer;">
+                    <option value="Pending" ${repair.status === 'Pending' ? 'selected' : ''}>PENDING</option>
+                    <option value="In Progress" ${repair.status === 'In Progress' ? 'selected' : ''}>IN PROGRESS</option>
+                    <option value="Completed" ${repair.status === 'Completed' ? 'selected' : ''}>COMPLETED</option>
+                </select>
+            </td>
+        </tr>
+    `).join('');
 }
 
 async function fetchAllMessages() {
