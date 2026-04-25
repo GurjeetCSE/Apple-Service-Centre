@@ -61,6 +61,28 @@
     </div>
 </section>
 
+<!-- ANIMATED STATISTICS -->
+<section class="section" id="stats-section" style="padding: 40px 20px; background: rgba(0,0,0,0.4); border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
+    <div class="grid-4" style="max-width: 1000px; margin: 0 auto; text-align: center;">
+        <div>
+            <div class="stat-number" data-target="15000" style="font-size: 2.5rem; font-weight: 700; color: #fff; margin-bottom: 5px;">0</div>
+            <div style="font-size: 0.85rem; color: #86868b; text-transform: uppercase; letter-spacing: 1px;">Repairs Completed</div>
+        </div>
+        <div>
+            <div class="stat-number" data-target="25" style="font-size: 2.5rem; font-weight: 700; color: #fff; margin-bottom: 5px;">0</div>
+            <div style="font-size: 0.85rem; color: #86868b; text-transform: uppercase; letter-spacing: 1px;">Certified Techs</div>
+        </div>
+        <div>
+            <div class="stat-number" data-target="99" data-suffix="%" style="font-size: 2.5rem; font-weight: 700; color: #fff; margin-bottom: 5px;">0%</div>
+            <div style="font-size: 0.85rem; color: #86868b; text-transform: uppercase; letter-spacing: 1px;">Happy Customers</div>
+        </div>
+        <div>
+            <div class="stat-number" data-target="10" data-suffix="+" style="font-size: 2.5rem; font-weight: 700; color: #fff; margin-bottom: 5px;">0+</div>
+            <div style="font-size: 0.85rem; color: #86868b; text-transform: uppercase; letter-spacing: 1px;">Years Experience</div>
+        </div>
+    </div>
+</section>
+
 <!-- QUICK FEATURES -->
 <section class="section page-transition">
     <div class="section-title">
@@ -217,6 +239,43 @@ function displayReviews(reviews) {
     `).join('');
 }
 document.addEventListener('DOMContentLoaded', fetchReviews);
+
+// STATS ANIMATION LOGIC
+document.addEventListener('DOMContentLoaded', () => {
+    const stats = document.querySelectorAll('.stat-number');
+    let animated = false;
+
+    const animateStats = () => {
+        stats.forEach(stat => {
+            const target = +stat.getAttribute('data-target');
+            const suffix = stat.getAttribute('data-suffix') || '';
+            const duration = 2000; // 2 seconds
+            const increment = target / (duration / 16); // 60fps
+            
+            let current = 0;
+            const updateCounter = () => {
+                current += increment;
+                if (current < target) {
+                    stat.innerText = Math.ceil(current).toLocaleString() + suffix;
+                    requestAnimationFrame(updateCounter);
+                } else {
+                    stat.innerText = target.toLocaleString() + suffix;
+                }
+            };
+            updateCounter();
+        });
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && !animated) {
+            animated = true;
+            animateStats();
+        }
+    }, { threshold: 0.5 });
+
+    const statsSection = document.getElementById('stats-section');
+    if (statsSection) observer.observe(statsSection);
+});
 </script>
 </body>
 </html>
