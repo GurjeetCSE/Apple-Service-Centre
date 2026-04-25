@@ -110,12 +110,19 @@
                     </div>
                     <div style="margin-bottom: 15px;">
                         <label style="display: block; font-size: 0.85rem; margin-bottom: 5px; color: #86868b;">Model Name</label>
-                        <input type="text" id="device-model" placeholder="e.g. iPhone 15 Pro" required style="width: 100%; padding: 12px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                        <input type="text" id="device-model" placeholder="e.g. iPhone 15 Pro" oninput="calculateEstimate()" required style="width: 100%; padding: 12px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; transition: 0.3s;">
                     </div>
                     <div style="margin-bottom: 20px;">
                         <label style="display: block; font-size: 0.85rem; margin-bottom: 5px; color: #86868b;">Issue Details</label>
-                        <textarea id="issue-details" placeholder="Describe the problem..." rows="3" required style="width: 100%; padding: 12px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;"></textarea>
+                        <textarea id="issue-details" placeholder="Describe the problem..." rows="3" oninput="calculateEstimate()" required style="width: 100%; padding: 12px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; transition: 0.3s;"></textarea>
                     </div>
+                    
+                    <div id="estimate-container" style="display: none; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px; text-align: center; animation: fadeIn 0.3s ease;">
+                        <div style="font-size: 0.85rem; color: #34d399; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;">Estimated Repair Cost</div>
+                        <div id="estimate-amount" style="font-size: 1.8rem; font-weight: 700; color: white;">$0</div>
+                        <div style="font-size: 0.75rem; color: #86868b; margin-top: 5px;">*Final price confirmed after physical diagnostic</div>
+                    </div>
+
                     <button type="submit" class="btn-primary" style="width: 100%;">Confirm Booking</button>
                     <p id="booking-status" style="margin-top: 15px; font-size: 0.85rem; text-align: center;"></p>
                 </form>
@@ -183,6 +190,38 @@ function filterServices() {
         }
     });
 }
+
+function calculateEstimate() {
+    const device = document.getElementById('device-type').value.toLowerCase();
+    const issue = document.getElementById('issue-details').value.toLowerCase();
+    const container = document.getElementById('estimate-container');
+    const amountEl = document.getElementById('estimate-amount');
+    
+    if (issue.length < 5) {
+        container.style.display = 'none';
+        return;
+    }
+
+    let basePrice = 0;
+    if (device === 'iphone') basePrice = 89;
+    else if (device === 'macbook') basePrice = 199;
+    else if (device === 'ipad') basePrice = 129;
+    else if (device === 'watch') basePrice = 149;
+    else basePrice = 99;
+
+    let multiplier = 1;
+    if (issue.includes('screen') || issue.includes('display') || issue.includes('glass')) multiplier += 1.5;
+    if (issue.includes('battery') || issue.includes('power')) multiplier += 0.5;
+    if (issue.includes('water') || issue.includes('liquid') || issue.includes('logic board')) multiplier += 2.0;
+
+    const finalEstimate = Math.round(basePrice * multiplier);
+    
+    amountEl.textContent = '$' + finalEstimate + ' - $' + (finalEstimate + 50);
+    container.style.display = 'block';
+}
+
+// Add event listener to the select dropdown as well
+document.getElementById('device-type')?.addEventListener('change', calculateEstimate);
 
 async function handleBooking(e) {
     e.preventDefault();
