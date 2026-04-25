@@ -60,7 +60,7 @@ function saveDB() {
 // ============ MIDDLEWARE ============
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(session({
     secret: 'apple-service-centre-secret-key-2026',
