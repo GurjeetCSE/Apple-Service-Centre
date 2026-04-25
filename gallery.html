@@ -32,32 +32,66 @@
 <!-- GALLERY -->
 <section class="section">
     <div class="gallery-grid">
-        <div class="gallery-item">
-            <img src="image1.jpg" alt="Outside View of Apple Service Centre">
-            <span class="gallery-label">Outside View</span>
+        <div class="gallery-item page-transition" onclick="openLightbox(this)">
+            <img src="image1.jpg" alt="Service Centre Interior">
+            <div class="gallery-label">Premium Service Area</div>
         </div>
-        <div class="gallery-item">
-            <img src="image2.jpg" alt="Building Front">
-            <span class="gallery-label">Building Front</span>
+        <div class="gallery-item page-transition" onclick="openLightbox(this)">
+            <img src="image2.jpg" alt="Expert Technician">
+            <div class="gallery-label">Precision Repairs</div>
         </div>
-        <div class="gallery-item">
-            <img src="image3.jpg" alt="Waiting Area">
-            <span class="gallery-label">Waiting Area</span>
+        <div class="gallery-item page-transition" onclick="openLightbox(this)">
+            <img src="image3.jpg" alt="Apple Diagnostics">
+            <div class="gallery-label">Advanced Diagnostics</div>
         </div>
-        <div class="gallery-item">
-            <img src="image4.jpg" alt="Service Desk">
-            <span class="gallery-label">Service Desk</span>
+        <div class="gallery-item page-transition" onclick="openLightbox(this)">
+            <img src="image4.jpg" alt="Customer Lounge">
+            <div class="gallery-label">Comfortable Waiting Area</div>
         </div>
-        <div class="gallery-item">
-            <img src="image5.jpg" alt="Reception Area">
-            <span class="gallery-label">Reception Area</span>
+        <div class="gallery-item page-transition" onclick="openLightbox(this)">
+            <img src="image5.jpg" alt="Genuine Parts Inventory">
+            <div class="gallery-label">Genuine Apple Parts</div>
         </div>
-        <div class="gallery-item">
-            <img src="image6.jpg" alt="Office Area">
-            <span class="gallery-label">Office Area</span>
+        <div class="gallery-item page-transition" onclick="openLightbox(this)">
+            <img src="image6.jpg" alt="Quality Inspection">
+            <div class="gallery-label">Final Quality Check</div>
         </div>
     </div>
 </section>
+
+<!-- LIGHTBOX MODAL -->
+<div id="lightbox" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(20px); z-index: 10000; align-items: center; justify-content: center; cursor: pointer; animation: fadeIn 0.3s ease;" onclick="closeLightbox()">
+    <button style="position: absolute; top: 30px; right: 30px; background: none; border: none; color: white; font-size: 2rem; cursor: pointer;">&times;</button>
+    <img id="lightbox-img" style="max-width: 90%; max-height: 85%; border-radius: 12px; box-shadow: 0 0 50px rgba(0,0,0,0.5); transform: scale(0.9); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
+    <div id="lightbox-label" style="position: absolute; bottom: 40px; color: white; font-size: 1.2rem; font-weight: 600; text-align: center; width: 100%;"></div>
+</div>
+
+<script>
+function openLightbox(element) {
+    const lightbox = document.getElementById('lightbox');
+    const img = document.getElementById('lightbox-img');
+    const label = document.getElementById('lightbox-label');
+    const src = element.querySelector('img').src;
+    const text = element.querySelector('.gallery-label').textContent;
+
+    img.src = src;
+    label.textContent = text;
+    lightbox.style.display = 'flex';
+    
+    setTimeout(() => {
+        img.style.transform = 'scale(1)';
+    }, 10);
+}
+
+function closeLightbox() {
+    const lightbox = document.getElementById('lightbox');
+    const img = document.getElementById('lightbox-img');
+    img.style.transform = 'scale(0.9)';
+    setTimeout(() => {
+        lightbox.style.display = 'none';
+    }, 300);
+}
+</script>
 
 <!-- FOOTER -->
 <footer>
