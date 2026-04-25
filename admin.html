@@ -147,7 +147,9 @@ function displayRepairs(repairs) {
             </td>
             <td style="padding: 20px; font-size: 0.85rem; max-width: 200px; color: #d2d2d7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${repair.issue}">${repair.issue}</td>
             <td style="padding: 20px;">
-                <select onchange="updateStatus(${repair.id}, this.value)" style="padding: 6px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; background: ${getStatusColor(repair.status)}; color: white; border: none; cursor: pointer;">
+                <select onchange="updateStatus(${repair.id}, this.value)" 
+                        data-tooltip="${getStatusDescription(repair.status)}"
+                        style="padding: 6px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; background: ${getStatusColor(repair.status)}; color: white; border: none; cursor: pointer;">
                     <option value="Pending" ${repair.status === 'Pending' ? 'selected' : ''}>PENDING</option>
                     <option value="In Progress" ${repair.status === 'In Progress' ? 'selected' : ''}>IN PROGRESS</option>
                     <option value="Completed" ${repair.status === 'Completed' ? 'selected' : ''}>COMPLETED</option>
@@ -326,6 +328,15 @@ function updateStats(repairs) {
             </div>
         `).join('')}
     `;
+}
+
+function getStatusDescription(status) {
+    switch(status.toLowerCase()) {
+        case 'pending': return 'Awaiting initial inspection';
+        case 'in progress': return 'Technician is currently working on it';
+        case 'completed': return 'Repair finished and ready for pickup';
+        default: return 'No description available';
+    }
 }
 
 function getStatusColor(status) {
