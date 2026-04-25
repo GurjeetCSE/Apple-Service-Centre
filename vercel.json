@@ -1,22 +1,4 @@
 {
   "version": 2,
-  "cleanUrls": true,
-  "functions": {
-    "api/**/*.js": {
-      "includeFiles": "node_modules/sql.js/dist/*.wasm"
-    }
-  },
-  "routes": [
-    { "src": "/", "dest": "/index.html" },
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/services", "dest": "/services.html" },
-    { "src": "/login", "dest": "/login.html" },
-    { "src": "/signup", "dest": "/signup.html" },
-    { "src": "/profile", "dest": "/profile.html" },
-    { "src": "/admin", "dest": "/admin.html" },
-    { "src": "/contact", "dest": "/contact.html" },
-    { "src": "/about", "dest": "/about.html" },
-    { "src": "/gallery", "dest": "/gallery.html" },
-    { "src": "/(.*)", "dest": "/$1" }
-  ]
+  "cleanUrls": true
 }
